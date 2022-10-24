@@ -58,6 +58,7 @@ const Home = () => {
   const [authorOne, setAuthorOne] = useState('');
   const [authorTwo, setAuthorTwo] = useState('');
   const [numberWorks, setNumberWorks] = useState(6);
+  const [includeTopWork, setIncludeTopWork] = useState(false);
   const authors: Author[] = [];
 
   const searchForAuthorOne = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
@@ -102,7 +103,7 @@ const Home = () => {
             <InputNumber size="md" defaultValue='6' prefix={<p>Number of Works</p>} onChange={setNumberWorks} />
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
-            <Checkbox>Include Best Seller</Checkbox>
+            <Checkbox onChange={setIncludeTopWork}>Include Best Seller</Checkbox>
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </div>
