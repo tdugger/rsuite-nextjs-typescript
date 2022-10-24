@@ -3,6 +3,10 @@ import Header from 'next/head';
 import Layout from '../components/layout';
 import { FlexboxGrid, Input, InputGroup, InputNumber, Checkbox, Grid, Row, Col, Container } from 'rsuite';
 import SearchIcon from '@rsuite/icons/Search';
+//import Plot from 'react-plotly.js';
+import dynamic from 'next/dynamic'
+const Plot = dynamic(() => import('react-plotly.js'), { ssr: false }); 
+
 
 const padding = {
   paddingLeft: '10px',
@@ -107,6 +111,47 @@ const Home = () => {
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </div>
+      <Plot className='center'
+        data={[
+          {
+            type: 'scatter',  // all "scatter" attributes: https://plot.ly/javascript/reference/#scatter
+            x: ['this is a\nlong name', 'another long name', 'and this one could be even longer'],     // more about "x": #scatter-x
+            y: [4, 8, 1],     // #scatter-y
+            marker: {         // marker is an object, valid marker keys: #scatter-marker
+              color: 'rgb(255, 0, 0)' // more about "marker.color": #scatter-marker-color
+            },
+            name: 'Author One'
+          },
+          {
+            type: 'scatter',      // all "bar" chart attributes: #bar
+            x: ['d','e','f'],     // more about "x": #bar-x
+            y: [6, 2, 3],     // #bar-y
+            xaxis: "x2",
+            marker: {         // marker is an object, valid marker keys: #scatter-marker
+              color: 'rgb(0, 0, 255)' // more about "marker.color": #scatter-marker-color
+            },
+            name: 'Author Too'
+          }
+        ]}
+        layout={{                     // all "layout" attributes: #layout
+          xaxis: {                  // all "layout.xaxis" attributes: #layout-xaxis
+            title: 'Author One Works',         // more about "layout.xaxis.title": #layout-xaxis-title
+            side: 'top',
+          },
+          xaxis2: {
+            title: 'Author Two Works',         // more about "layout.xaxis.title": #layout-xaxis-title
+            side: 'bottom',
+            overlaying: 'x',
+          },
+          yaxis: {
+            title: 'revisions'
+          },
+        }}
+        config = {{
+          showLink: false,
+          displayModeBar: false
+        }}
+      />
     </>
   );
 }
