@@ -1,11 +1,9 @@
-import React, { useReducer, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from 'next/head';
 import Layout from '../components/layout';
 import { FlexboxGrid, Input, InputGroup, InputNumber, Checkbox, Grid, Row, Col, Container } from 'rsuite';
 import SearchIcon from '@rsuite/icons/Search';
-//import Plot from 'react-plotly.js';
 import dynamic from 'next/dynamic'
-import next from 'next';
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
 
@@ -69,7 +67,9 @@ const Home = () => {
   const [y1Data, setY1Data] = useState(new Array<number>());
   const [x2Data, setX2Data] = useState(new Array<string>());
   const [y2Data, setY2Data] = useState(new Array<number>());
-  const authors: Author[] = [];
+  const [a1, setA1] = useState<Author>({} as Author);
+  const [a2, setA2] = useState<Author>({} as Author);
+  //let authors: Author[] = [];
 
   const searchForAuthorOne = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
     console.log('searching for author one', authorOne);
@@ -79,9 +79,10 @@ const Home = () => {
       author.topWorkRevisions = topWork.revision;
     }
     author.works.filter(work => work.title !== author.topWork);
-    authors[0] = author;
-    console.log(authors[0]);
-    setA1Data();
+    setA1(author);
+    //authors[0] = author;
+    //console.log(authors[0]);
+    setA1Data(author, includeTopWork);
   };
 
   const searchForAuthorTwo = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
@@ -92,24 +93,51 @@ const Home = () => {
       author.topWorkRevisions = topWork.revision;
     }
     author.works.filter(work => work.title !== author.topWork);
-    authors[1] = author;
-    console.log(authors[1]);
-    setA2Data();
+    setA2(author);
+    //authors[1] = author;
+    //console.log(authors[1]);
+    setA2Data(author, includeTopWork);
   };
 
-  const setA1Data = () => {
-    const works = authors[0].works.slice(0, numberWorks);
+  const setA1Data = (auth: Author, includeTopWork: boolean) => {
+    //console.log('here', authors[0]);
+    console.log('setA1Data', auth);
+    //console.log('here', a1);
+    //const author = a1 as Author;
+    const author = auth;
+    if (!author || !author.works) return;
+    const works = author.works.slice(0, numberWorks);
     const x = works.map(work => work.title);
+    if (includeTopWork) {
+      x.pop();
+      x.unshift(author.topWork);
+    }
     const y = works.map(work => work.revision);
+    if (includeTopWork) {
+      y.pop();
+      y.unshift(author.topWorkRevisions);
+    }
     console.log('x1Data', x1Data);
     setX1Data(x);
     setY1Data(y);
   }
 
-  const setA2Data = () => {
-    const works = authors[1].works.slice(0, numberWorks);
+  const setA2Data = (auth: Author, includeTopWork: boolean) => {
+    //if (authors[1] === undefined) return;
+    console.log('setA2Data', auth);
+    const author = auth;
+    if (!author || !author.works) return;
+    const works = author.works.slice(0, numberWorks);
     const x = works.map(work => work.title);
+    if (includeTopWork) {
+      x.pop();
+      x.unshift(author.topWork);
+    }
     const y = works.map(work => work.revision);
+    if (includeTopWork) {
+      y.pop();
+      y.unshift(author.topWorkRevisions);
+    }
     console.log('x2Data', x2Data);
     setX2Data(x);
     setY2Data(y);
@@ -119,11 +147,13 @@ const Home = () => {
   };
 
   const numberWorksChanged = () => {
-    console.log('number works changed', numberWorks);
+    console.log('numberOfWorks changed', numberWorks);
+    //setA1Data(a1);
+    //setA2Data();
   };
 
   useEffect(addTopWork, [includeTopWork]);
-  useEffect(numberWorksChanged, [numberWorks]);
+  //useEffect(numberWorksChanged, [numberWorks]);
 
   return (
     <>
@@ -155,7 +185,10 @@ const Home = () => {
             <InputNumber size="md" defaultValue='6' prefix={<p>Number of Works</p>} onChange={setNumberWorks} />
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
-            <Checkbox onChange={(value, checked, event) => setIncludeTopWork(checked)}>Include Best Seller</Checkbox>
+            <Checkbox onChange={(value, checked, event) => {
+              setA1Data(a1, checked); 
+              setA2Data(a2, checked);
+              }}>Include Best Seller</Checkbox>
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </div>
@@ -204,7 +237,6 @@ const Home = () => {
       />
     </>
   );
-            // <Checkbox onChange={(v, c, e) => setIncludeTopWork(c)}>Include Best Seller</Checkbox>
 }
 
 export default Home;
