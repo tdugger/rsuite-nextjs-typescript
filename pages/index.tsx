@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useReducer, useState, useEffect } from 'react';
 import Header from 'next/head';
 import Layout from '../components/layout';
 import { FlexboxGrid, Input, InputGroup, InputNumber, Checkbox, Grid, Row, Col, Container } from 'rsuite';
 import SearchIcon from '@rsuite/icons/Search';
 //import Plot from 'react-plotly.js';
 import dynamic from 'next/dynamic'
-const Plot = dynamic(() => import('react-plotly.js'), { ssr: false }); 
+import next from 'next';
+const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
 
 const padding = {
@@ -21,7 +22,8 @@ type Author = {
   key: string,
   name: string,
   works: Work[],
-  topWork: string
+  topWork: string,
+  topWorkRevisions: number
 }
 
 type Work = {
@@ -34,7 +36,8 @@ const getAuthorData = async (authorName: string, numWorks: number): Promise<Auth
     key: '',
     name: '',
     works: [],
-    topWork: ''
+    topWork: '',
+    topWorkRevisions: 0
   };
   //console.log('numWorks:', numWorks);
   const urlEncodedAuthorName = encodeURIComponent(authorName);
@@ -57,25 +60,70 @@ const getAuthorData = async (authorName: string, numWorks: number): Promise<Auth
   return author;
 };
 
-
 const Home = () => {
   const [authorOne, setAuthorOne] = useState('');
   const [authorTwo, setAuthorTwo] = useState('');
   const [numberWorks, setNumberWorks] = useState(6);
   const [includeTopWork, setIncludeTopWork] = useState(false);
+  const [x1Data, setX1Data] = useState(new Array<string>());
+  const [y1Data, setY1Data] = useState(new Array<number>());
+  const [x2Data, setX2Data] = useState(new Array<string>());
+  const [y2Data, setY2Data] = useState(new Array<number>());
   const authors: Author[] = [];
 
   const searchForAuthorOne = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
     console.log('searching for author one', authorOne);
-    authors[0] = await getAuthorData(authorOne, numberWorks);
+    const author = await getAuthorData(authorOne, numberWorks);
+    const topWork = author.works.find(work => work.title === author.topWork);
+    if (topWork) {
+      author.topWorkRevisions = topWork.revision;
+    }
+    author.works.filter(work => work.title !== author.topWork);
+    authors[0] = author;
     console.log(authors[0]);
+    setA1Data();
   };
 
   const searchForAuthorTwo = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
     console.log('searching for author two', authorTwo);
-    authors[1] = await getAuthorData(authorTwo, numberWorks);
+    const author = await getAuthorData(authorTwo, numberWorks);
+    const topWork = author.works.find(work => work.title === author.topWork);
+    if (topWork) {
+      author.topWorkRevisions = topWork.revision;
+    }
+    author.works.filter(work => work.title !== author.topWork);
+    authors[1] = author;
     console.log(authors[1]);
+    setA2Data();
   };
+
+  const setA1Data = () => {
+    const works = authors[0].works.slice(0, numberWorks);
+    const x = works.map(work => work.title);
+    const y = works.map(work => work.revision);
+    console.log('x1Data', x1Data);
+    setX1Data(x);
+    setY1Data(y);
+  }
+
+  const setA2Data = () => {
+    const works = authors[1].works.slice(0, numberWorks);
+    const x = works.map(work => work.title);
+    const y = works.map(work => work.revision);
+    console.log('x2Data', x2Data);
+    setX2Data(x);
+    setY2Data(y);
+  }
+
+  const addTopWork = () => {
+  };
+
+  const numberWorksChanged = () => {
+    console.log('number works changed', numberWorks);
+  };
+
+  useEffect(addTopWork, [includeTopWork]);
+  useEffect(numberWorksChanged, [numberWorks]);
 
   return (
     <>
@@ -107,7 +155,7 @@ const Home = () => {
             <InputNumber size="md" defaultValue='6' prefix={<p>Number of Works</p>} onChange={setNumberWorks} />
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
-            <Checkbox onChange={setIncludeTopWork}>Include Best Seller</Checkbox>
+            <Checkbox onChange={(value, checked, event) => setIncludeTopWork(checked)}>Include Best Seller</Checkbox>
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </div>
@@ -115,8 +163,8 @@ const Home = () => {
         data={[
           {
             type: 'scatter',  // all "scatter" attributes: https://plot.ly/javascript/reference/#scatter
-            x: ['this is a\nlong name', 'another long name', 'and this one could be even longer'],     // more about "x": #scatter-x
-            y: [4, 8, 1],     // #scatter-y
+            x: x1Data,     // more about "x": #scatter-x
+            y: y1Data,     // #scatter-y
             marker: {         // marker is an object, valid marker keys: #scatter-marker
               color: 'rgb(255, 0, 0)' // more about "marker.color": #scatter-marker-color
             },
@@ -124,22 +172,24 @@ const Home = () => {
           },
           {
             type: 'scatter',      // all "bar" chart attributes: #bar
-            x: ['d','e','f'],     // more about "x": #bar-x
-            y: [6, 2, 3],     // #bar-y
+            x: x2Data,     // more about "x": #bar-x
+            y: y2Data,     // #bar-y
             xaxis: "x2",
             marker: {         // marker is an object, valid marker keys: #scatter-marker
               color: 'rgb(0, 0, 255)' // more about "marker.color": #scatter-marker-color
             },
-            name: 'Author Too'
+            name: 'Author Two'
           }
         ]}
         layout={{                     // all "layout" attributes: #layout
           xaxis: {                  // all "layout.xaxis" attributes: #layout-xaxis
             title: 'Author One Works',         // more about "layout.xaxis.title": #layout-xaxis-title
             side: 'top',
+            color: 'rgb(255, 0, 0)',
           },
           xaxis2: {
             title: 'Author Two Works',         // more about "layout.xaxis.title": #layout-xaxis-title
+            color: 'rgb(0, 0, 255)',
             side: 'bottom',
             overlaying: 'x',
           },
@@ -147,13 +197,14 @@ const Home = () => {
             title: 'revisions'
           },
         }}
-        config = {{
+        config={{
           showLink: false,
           displayModeBar: false
         }}
       />
     </>
   );
+            // <Checkbox onChange={(v, c, e) => setIncludeTopWork(c)}>Include Best Seller</Checkbox>
 }
 
 export default Home;
