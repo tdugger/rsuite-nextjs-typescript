@@ -148,11 +148,12 @@ const Home = () => {
 
   const numberWorksChanged = () => {
     console.log('numberOfWorks changed', numberWorks);
-    //setA1Data(a1);
-    //setA2Data();
+    console.log('includeTopWork is', includeTopWork);
+    setA1Data(a1, includeTopWork);
+    setA2Data(a2, includeTopWork);
   };
 
-  useEffect(addTopWork, [includeTopWork]);
+  //useEffect(addTopWork, [includeTopWork]);
   //useEffect(numberWorksChanged, [numberWorks]);
 
   return (
@@ -182,13 +183,18 @@ const Home = () => {
             </InputGroup>
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
-            <InputNumber size="md" defaultValue='6' prefix={<p>Number of Works</p>} onChange={setNumberWorks} />
+            <InputNumber size="md" defaultValue='6' prefix={<p>Number of Works</p>} onChange={(value) => {
+              setNumberWorks(Number(value));
+              setA1Data(a1, includeTopWork);
+              setA2Data(a2, includeTopWork);}}/>
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
             <Checkbox onChange={(value, checked, event) => {
+              setIncludeTopWork(checked);
               setA1Data(a1, checked); 
-              setA2Data(a2, checked);
-              }}>Include Best Seller</Checkbox>
+              setA2Data(a2, checked);}}>
+                Include Best Seller
+            </Checkbox>
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </div>
