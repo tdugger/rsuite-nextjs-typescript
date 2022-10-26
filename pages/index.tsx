@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from 'next/head';
 import Layout from '../components/layout';
-import { FlexboxGrid, Input, InputGroup, InputNumber, Checkbox, Grid, Row, Col, Container } from 'rsuite';
+import { FlexboxGrid, Input, InputGroup, InputNumber, Checkbox } from 'rsuite';
 import SearchIcon from '@rsuite/icons/Search';
 import dynamic from 'next/dynamic'
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
-
 
 const padding = {
   paddingLeft: '10px',
@@ -25,7 +24,7 @@ type Work = {
   revision: number
 };
 
-const getAuthorData = async (authorName: string, numWorks: number): Promise<Author> => {
+const getAuthorData = async (authorName: string): Promise<Author> => {
   const author: Author = {
     key: '',
     name: '',
@@ -51,6 +50,14 @@ const getAuthorData = async (authorName: string, numWorks: number): Promise<Auth
     //console.log(worksData);
     author.works = worksData.entries;
   }
+
+  // remove top work from list of works and set top work revisions on author
+  const topWork = author.works.find(work => work.title === author.topWork);
+  if (topWork) {
+    author.topWorkRevisions = topWork.revision;
+  }
+  author.works.filter(work => work.title !== author.topWork);
+
   return author;
 };
 
@@ -68,24 +75,14 @@ const Home = () => {
 
   const searchForAuthorOne = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
     console.log('searching for author one', authorOne);
-    const author = await getAuthorData(authorOne, numberWorks);
-    const topWork = author.works.find(work => work.title === author.topWork);
-    if (topWork) {
-      author.topWorkRevisions = topWork.revision;
-    }
-    author.works.filter(work => work.title !== author.topWork);
+    const author = await getAuthorData(authorOne);
     setA1(author);
     setData(author, numberWorks, setX1Data, setY1Data, includeTopWork);
   };
 
   const searchForAuthorTwo = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
     console.log('searching for author two', authorTwo);
-    const author = await getAuthorData(authorTwo, numberWorks);
-    const topWork = author.works.find(work => work.title === author.topWork);
-    if (topWork) {
-      author.topWorkRevisions = topWork.revision;
-    }
-    author.works.filter(work => work.title !== author.topWork);
+    const author = await getAuthorData(authorTwo);
     setA2(author);
     setData(author, numberWorks, setX2Data, setY2Data, includeTopWork);
   };
