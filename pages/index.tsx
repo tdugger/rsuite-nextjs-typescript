@@ -11,10 +11,6 @@ const padding = {
   paddingLeft: '10px',
   paddingRight: '10px'
 };
-const center = {
-  position: 'fixed',
-  textAlign: 'center'
-};
 
 type Author = {
   key: string,
@@ -69,7 +65,6 @@ const Home = () => {
   const [y2Data, setY2Data] = useState(new Array<number>());
   const [a1, setA1] = useState<Author>({} as Author);
   const [a2, setA2] = useState<Author>({} as Author);
-  //let authors: Author[] = [];
 
   const searchForAuthorOne = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
     console.log('searching for author one', authorOne);
@@ -80,9 +75,7 @@ const Home = () => {
     }
     author.works.filter(work => work.title !== author.topWork);
     setA1(author);
-    //authors[0] = author;
-    //console.log(authors[0]);
-    setA1Data(author, includeTopWork);
+    setData(author, numberWorks, setX1Data, setY1Data, includeTopWork);
   };
 
   const searchForAuthorTwo = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
@@ -94,67 +87,26 @@ const Home = () => {
     }
     author.works.filter(work => work.title !== author.topWork);
     setA2(author);
-    //authors[1] = author;
-    //console.log(authors[1]);
-    setA2Data(author, includeTopWork);
+    setData(author, numberWorks, setX2Data, setY2Data, includeTopWork);
   };
 
-  const setA1Data = (auth: Author, includeTopWork: boolean) => {
-    //console.log('here', authors[0]);
-    console.log('setA1Data', auth);
-    //console.log('here', a1);
-    //const author = a1 as Author;
-    const author = auth;
+  const setData = (author: Author, numWorks: number, setX: React.Dispatch<React.SetStateAction<string[]>>, setY: React.Dispatch<React.SetStateAction<number[]>>, includeTop: boolean) => {
+    console.log('includeTopWork', includeTop);
     if (!author || !author.works) return;
-    const works = author.works.slice(0, numberWorks);
+    const works = author.works.slice(0, numWorks);
     const x = works.map(work => work.title);
-    if (includeTopWork) {
+    if (includeTop) {
       x.pop();
       x.unshift(author.topWork);
     }
     const y = works.map(work => work.revision);
-    if (includeTopWork) {
+    if (includeTop) {
       y.pop();
       y.unshift(author.topWorkRevisions);
     }
-    console.log('x1Data', x1Data);
-    setX1Data(x);
-    setY1Data(y);
-  }
-
-  const setA2Data = (auth: Author, includeTopWork: boolean) => {
-    //if (authors[1] === undefined) return;
-    console.log('setA2Data', auth);
-    const author = auth;
-    if (!author || !author.works) return;
-    const works = author.works.slice(0, numberWorks);
-    const x = works.map(work => work.title);
-    if (includeTopWork) {
-      x.pop();
-      x.unshift(author.topWork);
-    }
-    const y = works.map(work => work.revision);
-    if (includeTopWork) {
-      y.pop();
-      y.unshift(author.topWorkRevisions);
-    }
-    console.log('x2Data', x2Data);
-    setX2Data(x);
-    setY2Data(y);
-  }
-
-  const addTopWork = () => {
+    setX(x);
+    setY(y);
   };
-
-  const numberWorksChanged = () => {
-    console.log('numberOfWorks changed', numberWorks);
-    console.log('includeTopWork is', includeTopWork);
-    setA1Data(a1, includeTopWork);
-    setA2Data(a2, includeTopWork);
-  };
-
-  //useEffect(addTopWork, [includeTopWork]);
-  //useEffect(numberWorksChanged, [numberWorks]);
 
   return (
     <>
@@ -185,62 +137,72 @@ const Home = () => {
           <FlexboxGrid.Item colspan={4} style={padding}>
             <InputNumber size="md" defaultValue='6' prefix={<p>Number of Works</p>} onChange={(value) => {
               setNumberWorks(Number(value));
-              setA1Data(a1, includeTopWork);
-              setA2Data(a2, includeTopWork);}}/>
+              setData(a1, Number(value), setX1Data, setY1Data, includeTopWork);
+              setData(a2, Number(value), setX2Data, setY2Data, includeTopWork);
+              }}/>
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
             <Checkbox onChange={(value, checked, event) => {
+              console.log('checked', checked);
               setIncludeTopWork(checked);
-              setA1Data(a1, checked); 
-              setA2Data(a2, checked);}}>
+              setData(a1, numberWorks, setX1Data, setY1Data, checked);
+              setData(a2, numberWorks, setX2Data, setY2Data, checked);
+              }}>
                 Include Best Seller
             </Checkbox>
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </div>
-      <Plot className='center'
-        data={[
-          {
-            type: 'scatter',  // all "scatter" attributes: https://plot.ly/javascript/reference/#scatter
-            x: x1Data,     // more about "x": #scatter-x
-            y: y1Data,     // #scatter-y
-            marker: {         // marker is an object, valid marker keys: #scatter-marker
-              color: 'rgb(255, 0, 0)' // more about "marker.color": #scatter-marker-color
+      <div style={{width: 100+"%",padding: 100}}>
+        <Plot className='center'
+          data={[
+            {
+              type: 'scatter',  // all "scatter" attributes: https://plot.ly/javascript/reference/#scatter
+              x: x1Data,     // more about "x": #scatter-x
+              y: y1Data,     // #scatter-y
+              marker: {         // marker is an object, valid marker keys: #scatter-marker
+                color: 'rgb(255, 0, 0)' // more about "marker.color": #scatter-marker-color
+              },
+              name: 'Author One'
             },
-            name: 'Author One'
-          },
-          {
-            type: 'scatter',      // all "bar" chart attributes: #bar
-            x: x2Data,     // more about "x": #bar-x
-            y: y2Data,     // #bar-y
-            xaxis: "x2",
-            marker: {         // marker is an object, valid marker keys: #scatter-marker
-              color: 'rgb(0, 0, 255)' // more about "marker.color": #scatter-marker-color
+            {
+              type: 'scatter',      // all "bar" chart attributes: #bar
+              x: x2Data,     // more about "x": #bar-x
+              y: y2Data,     // #bar-y
+              xaxis: "x2",
+              marker: {         // marker is an object, valid marker keys: #scatter-marker
+                color: 'rgb(0, 0, 255)' // more about "marker.color": #scatter-marker-color
+              },
+              name: 'Author Two'
+            }
+          ]}
+          layout={{
+            width: 1000,                 // all "layout" attributes: #layout
+            margin: {
+              pad: 40,
+              l: 100
             },
-            name: 'Author Two'
-          }
-        ]}
-        layout={{                     // all "layout" attributes: #layout
-          xaxis: {                  // all "layout.xaxis" attributes: #layout-xaxis
-            title: 'Author One Works',         // more about "layout.xaxis.title": #layout-xaxis-title
-            side: 'top',
-            color: 'rgb(255, 0, 0)',
-          },
-          xaxis2: {
-            title: 'Author Two Works',         // more about "layout.xaxis.title": #layout-xaxis-title
-            color: 'rgb(0, 0, 255)',
-            side: 'bottom',
-            overlaying: 'x',
-          },
-          yaxis: {
-            title: 'revisions'
-          },
-        }}
-        config={{
-          showLink: false,
-          displayModeBar: false
-        }}
-      />
+            xaxis: {                  // all "layout.xaxis" attributes: #layout-xaxis
+              title: 'Author One Works',         // more about "layout.xaxis.title": #layout-xaxis-title
+              side: 'top',
+              color: 'rgb(255, 0, 0)',
+            },
+            xaxis2: {
+              title: 'Author Two Works',         // more about "layout.xaxis.title": #layout-xaxis-title
+              color: 'rgb(0, 0, 255)',
+              side: 'bottom',
+              overlaying: 'x',
+            },
+            yaxis: {
+              title: 'revisions'
+            },
+          }}
+          config={{
+            showLink: false,
+            displayModeBar: false
+          }}
+        />
+      </div>
     </>
   );
 }
