@@ -26,17 +26,6 @@ const NavLink = React.forwardRef((props: NavLinkProps, ref: React.Ref<HTMLAnchor
 const Layout: React.FunctionComponent<LayoutProps> = ({ activeKey, children }) => {
   return (
     <div className="container">
-      <Nav activeKey={activeKey}>
-        <Nav.Item eventKey="home" componentClass={NavLink} href="/">
-          Home
-        </Nav.Item>
-        <Nav.Item eventKey="one" componentClass={NavLink} href="/one">
-          Page 1
-        </Nav.Item>
-        <Nav.Item eventKey="two" componentClass={NavLink} href="/two">
-          Page 2
-        </Nav.Item>
-      </Nav>
       {children}
     </div>
   );
