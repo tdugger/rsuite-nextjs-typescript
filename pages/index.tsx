@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Header from 'next/head';
 import Layout from '../components/layout';
 import { FlexboxGrid, Input, InputGroup, InputNumber, Checkbox } from 'rsuite';
@@ -73,11 +73,15 @@ const Home = () => {
   const [a1, setA1] = useState<Author>({} as Author);
   const [a2, setA2] = useState<Author>({} as Author);
 
+  const authorOneInputRef = useRef(null);
+  const authorTwoInputRef = useRef(null);
+
   const searchForAuthorOne = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
     console.log('searching for author one', authorOne);
     const author = await getAuthorData(authorOne);
     setA1(author);
     setData(author, numberWorks, setX1Data, setY1Data, includeTopWork);
+    authorOneInputRef.current.value = author.name;
   };
 
   const searchForAuthorTwo = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
@@ -85,9 +89,15 @@ const Home = () => {
     const author = await getAuthorData(authorTwo);
     setA2(author);
     setData(author, numberWorks, setX2Data, setY2Data, includeTopWork);
+    authorTwoInputRef.current.value = author.name;
   };
 
-  const setData = (author: Author, numWorks: number, setX: React.Dispatch<React.SetStateAction<string[]>>, setY: React.Dispatch<React.SetStateAction<number[]>>, includeTop: boolean) => {
+  const setData = (
+      author: Author,
+      numWorks: number,
+      setX: React.Dispatch<React.SetStateAction<string[]>>,
+      setY: React.Dispatch<React.SetStateAction<number[]>>,
+      includeTop: boolean) => {
     console.log('includeTopWork', includeTop);
     if (!author || !author.works) return;
     const works = author.works.slice(0, numWorks);
@@ -117,7 +127,7 @@ const Home = () => {
         <FlexboxGrid justify='center'>
           <FlexboxGrid.Item colspan={4} style={padding}>
             <InputGroup size="md">
-              <Input placeholder={"Author One"} value={authorOne} onChange={setAuthorOne} onPressEnter={searchForAuthorOne} />
+              <Input id="input1" inputRef={authorOneInputRef} placeholder={"Author One"} value={authorOne} onChange={setAuthorOne} onPressEnter={searchForAuthorOne} />
               <InputGroup.Button onClick={searchForAuthorOne}>
                 <SearchIcon />
               </InputGroup.Button>
@@ -125,7 +135,7 @@ const Home = () => {
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
             <InputGroup size="md">
-              <Input placeholder={"Author Two"} value={authorTwo} onChange={setAuthorTwo} onPressEnter={searchForAuthorTwo} />
+              <Input id="input2" inputRef={authorTwoInputRef} placeholder={"Author Two"} value={authorTwo} onChange={setAuthorTwo} onPressEnter={searchForAuthorTwo} />
               <InputGroup.Button onClick={searchForAuthorTwo}>
                 <SearchIcon />
               </InputGroup.Button>
@@ -136,7 +146,7 @@ const Home = () => {
               setNumberWorks(Number(value));
               setData(a1, Number(value), setX1Data, setY1Data, includeTopWork);
               setData(a2, Number(value), setX2Data, setY2Data, includeTopWork);
-              }}/>
+            }} />
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
             <Checkbox onChange={(value, checked, event) => {
@@ -144,13 +154,13 @@ const Home = () => {
               setIncludeTopWork(checked);
               setData(a1, numberWorks, setX1Data, setY1Data, checked);
               setData(a2, numberWorks, setX2Data, setY2Data, checked);
-              }}>
-                Include Best Seller
+            }}>
+              Include Best Seller
             </Checkbox>
           </FlexboxGrid.Item>
         </FlexboxGrid>
       </div>
-      <div style={{width: 100+"%",padding: 100}}>
+      <div style={{ width: 100 + "%", padding: 100 }}>
         <Plot className='center'
           data={[
             {
