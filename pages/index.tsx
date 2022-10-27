@@ -32,22 +32,17 @@ const getAuthorData = async (authorName: string): Promise<Author> => {
     topWork: '',
     topWorkRevisions: 0
   };
-  //console.log('numWorks:', numWorks);
   const urlEncodedAuthorName = encodeURIComponent(authorName);
   const authors = await fetch(`https://openlibrary.org/search/authors.json?q=${urlEncodedAuthorName}`);
   const authorsData = await authors.json();
 
-  //console.log(authorsData);
   if (authorsData.numFound && authorsData.numFound > 0) {
     author.key = authorsData.docs[0].key;
     author.name = authorsData.docs[0].name;
     author.topWork = authorsData.docs[0].top_work;
-    //console.log(`top work for ${author.name}`, author.topWork);
-    //console.log('works for author', author.name);
 
     const worksResponse = await fetch(`https://openlibrary.org/authors/${author.key}/works.json`);
     const worksData = await worksResponse.json();
-    //console.log(worksData);
     author.works = worksData.entries;
   }
 
@@ -65,7 +60,7 @@ const Home = () => {
   const [authorOne, setAuthorOne] = useState('');
   const [authorTwo, setAuthorTwo] = useState('');
   const [numberWorks, setNumberWorks] = useState(6);
-  const [includeTopWork, setIncludeTopWork] = useState(false);
+  const [includeTopWork, setIncludeTopWork] = useState(true);
   const [x1Data, setX1Data] = useState(new Array<string>());
   const [y1Data, setY1Data] = useState(new Array<number>());
   const [x2Data, setX2Data] = useState(new Array<string>());
@@ -77,7 +72,6 @@ const Home = () => {
   const authorTwoInputRef = useRef(null);
 
   const searchForAuthorOne = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
-    console.log('searching for author one', authorOne);
     const author = await getAuthorData(authorOne);
     setA1(author);
     setData(author, numberWorks, setX1Data, setY1Data, includeTopWork);
@@ -85,7 +79,6 @@ const Home = () => {
   };
 
   const searchForAuthorTwo = async (event: React.SyntheticEvent<Element, Event>): Promise<void> => {
-    console.log('searching for author two', authorTwo);
     const author = await getAuthorData(authorTwo);
     setA2(author);
     setData(author, numberWorks, setX2Data, setY2Data, includeTopWork);
@@ -127,7 +120,12 @@ const Home = () => {
         <FlexboxGrid justify='center'>
           <FlexboxGrid.Item colspan={4} style={padding}>
             <InputGroup size="md">
-              <Input id="input1" inputRef={authorOneInputRef} placeholder={"Author One"} value={authorOne} onChange={setAuthorOne} onPressEnter={searchForAuthorOne} />
+              <Input inputRef={authorOneInputRef} placeholder={"Author One"} value={authorOne} onChange={(value) => {
+                    const re = /^[A-Za-z\ ]+$/;
+                    if (value === "" || re.test(value)) {
+                      setAuthorOne(value);
+                    }
+                }} onPressEnter={searchForAuthorOne} />
               <InputGroup.Button onClick={searchForAuthorOne}>
                 <SearchIcon />
               </InputGroup.Button>
@@ -135,22 +133,26 @@ const Home = () => {
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
             <InputGroup size="md">
-              <Input id="input2" inputRef={authorTwoInputRef} placeholder={"Author Two"} value={authorTwo} onChange={setAuthorTwo} onPressEnter={searchForAuthorTwo} />
+              <Input inputRef={authorTwoInputRef} placeholder={"Author Two"} value={authorTwo} onChange={(value) => {
+                    const re = /^[A-Za-z\ ]+$/;
+                    if (value === "" || re.test(value)) {
+                      setAuthorTwo(value);
+                    }
+                }} onPressEnter={searchForAuthorTwo} />
               <InputGroup.Button onClick={searchForAuthorTwo}>
                 <SearchIcon />
               </InputGroup.Button>
             </InputGroup>
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
-            <InputNumber size="md" defaultValue='6' prefix={<p>Number of Works</p>} onChange={(value) => {
+            <InputNumber size="md" defaultValue='6' min='0' max='10' prefix={<p>Number of Works</p>} onChange={(value) => {
               setNumberWorks(Number(value));
               setData(a1, Number(value), setX1Data, setY1Data, includeTopWork);
               setData(a2, Number(value), setX2Data, setY2Data, includeTopWork);
             }} />
           </FlexboxGrid.Item>
           <FlexboxGrid.Item colspan={4} style={padding}>
-            <Checkbox onChange={(value, checked, event) => {
-              console.log('checked', checked);
+            <Checkbox defaultChecked={true} onChange={(value, checked, event) => {
               setIncludeTopWork(checked);
               setData(a1, numberWorks, setX1Data, setY1Data, checked);
               setData(a2, numberWorks, setX2Data, setY2Data, checked);
